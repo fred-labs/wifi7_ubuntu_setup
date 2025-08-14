@@ -70,6 +70,13 @@ Moreover, the firmare alone isn't enough, Linux kernel/mac80211 and iwlwifi driv
  - expose MLO to cfg80211
  - pass them through to wpa_supplicant.
 
+```bash
+lsmod | grep iwlwifi
+# You will see:
+# iwlwifi               643072  1 iwlmld
+# cfg80211             1441792  3 iwlmld,iwlwifi,mac80211
+```
+
 ## Step 3: Compile the wpa_supplicant
 
 It needs to be built with CONFIG_IEEE80211BE=y (v2.11 or newer): [Reference](https://www.linuxfromscratch.org/blfs/view/svn/basicnet/wpa_supplicant.html)
