@@ -86,9 +86,11 @@ Install the dependencies:
 sudo apt install -y libnl-3-dev libnl-genl-3-dev libssl-dev pkg-config \
                     libdbus-1-dev
 
+# Install c compiler
+sudo apt install make build-essential
+
 # Optional: Rebuild with P2P enabled
 sudo apt install -y libnl-3-dev libnl-genl-3-dev libssl-dev libdbus-1-dev pkg-config
-
 
 # Download: https://w1.fi/releases/wpa_supplicant-2.11.tar.gz
 # add a config file to overwrite the default configs
