@@ -176,3 +176,67 @@ Run DHCP client to get the IP
 ```bash
 sudo dhcpcd wlp87s0f0
 ```
+
+# Install Intel Wifi on Jetson Orin Nano
+
+Tested with jetpack 6.2 (kernel 5.15)
+
+```
+sudo apt install build-essential git
+git clone https://git.kernel.org/pub/scm/linux/kernel/git/iwlwifi/backport-iwlwifi.git
+cd backport-iwlwifi
+make defconfig-iwlwifi-public
+```
+
+patch file (timer function already defined in jetson kernel)
+
+```
+diff --git a/backport-include/linux/timer.h b/backport-include/linux/timer.h
+index d4faec0a5..3ad1e9d01 100644
+--- a/backport-include/linux/timer.h
++++ b/backport-include/linux/timer.h
+@@ -68,7 +68,7 @@ static inline void timer_setup(struct timer_list *timer,
+ #endif
+
+ #if LINUX_VERSION_IS_LESS(6,2,0)
+-static inline int timer_shutdown(struct timer_list *t)
++/*static inline int timer_shutdown(struct timer_list *t)
+ {
+        return del_timer(t);
+ }
+@@ -76,7 +76,7 @@ static inline int timer_shutdown(struct timer_list *t)
+ static inline int timer_shutdown_sync(struct timer_list *t)
+ {
+        return del_timer_sync(t);
+-}
++//}*/
+ #endif
+
+ /* This was backported to 4.19.312 and 5,4,274, but we do not support such high minor numbers use 255 instead. */
+@@ -92,10 +92,10 @@ static inline int timer_delete_sync(struct timer_list *timer)
+ #endif /* < 6.1.84 */
+
+ #if LINUX_VERSION_IS_LESS(6,2,0)
+-static inline int timer_delete(struct timer_list *timer)
++/*static inline int timer_delete(struct timer_list *timer)
+ {
+        return del_timer(timer);
+-}
++}*/
+ #endif
+
+ #ifndef timer_container_of
+```
+
+Build and install firmware blob
+
+```
+make -j$(nproc) KLIB=/lib/modules/$(uname -r) KLIB_BUILD=/usr/src/linux-headers-5.15.185-tegra-ubuntu22.04_aarch64/3rdparty/canonical/linux-jammy/kernel-source/
+
+cd /lib/firmware
+sudo wget https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/plain/intel/iwlwifi/iwlwifi-gl-c0-fm-c0-c102.ucode
+sudo modprobe iwlwifi
+
+# check
+sudo dmesg
+```
