@@ -240,3 +240,44 @@ sudo modprobe iwlwifi
 # check
 sudo dmesg
 ```
+
+# Automatic startup using systemd
+
+Create file `sudo nano /etc/systemd/system/wifi-custom.service`
+
+```
+[Unit]
+Description=Custom WiFi and DHCP Service
+After=network-pre.target
+Wants=network.target
+
+[Service]
+Type=simple
+
+# 1. Bring the interface up before starting the main process
+ExecStartPre=/usr/bin/ip link set wlP1p1s0f0 up
+
+# 2. Start wpa_supplicant (Type=simple expects the main process to run in the foreground)
+ExecStart=/usr/local/bin/wpa_supplicant -i wlP1p1s0f0 -c /etc/wpa_supplicant.conf.loc
+
+# 3. Start dhcpcd (Forks into the background automatically)
+ExecStartPost=/usr/sbin/dhcpcd wlP1p1s0f0
+
+# Gracefully release the DHCP lease and bring the interface down on stop
+ExecStop=/usr/sbin/dhcpcd -x wlP1p1s0f0
+ExecStopPost=/usr/bin/ip link set wlP1p1s0f0 down
+
+# Automatically restart if the connection drops or fails
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Install
+
+```
+sudo systemctl daemon-reload
+sudo systemctl enable wifi-custom.service
+```
